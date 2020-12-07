@@ -77,5 +77,29 @@ namespace BackEndInventoryService.Service
                 PendingReservations.Add(reservation);
             }
         }
+
+        public void HandleReservationsAvailability(string productId)
+        {
+            var pendingReservationsToRemove = new List<Reservation>();
+
+            foreach (var reservation in PendingReservations)
+            {
+                var order = reservation.OrdersLines.Where(o => o.ProductId == productId).SingleOrDefault();
+
+                if (order != null && AreAllProductsAvailable(reservation.OrdersLines))
+                {
+                    pendingReservationsToRemove.Add(reservation);
+                    AvailableReservations.Add(reservation);
+                    SetInventory(productId, Products[productId].Quantity - order.Quantity);
+                }
+            }
+
+            pendingReservationsToRemove.ForEach(r => PendingReservations.Remove(r));
+        }
+
+        private bool AreAllProductsAvailable(List<OrderLine> orders)
+        {
+            return orders.All(o => Products[o.ProductId].Quantity >= o.Quantity);
+        }
     }
 }

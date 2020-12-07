@@ -111,6 +111,72 @@ namespace BackEndInventoryService.Test
             backEndServiceUnderTest.Products["1"].Quantity.Should().Be(99);
         }
 
+        [TestMethod]
+        public void adding_enough_products_in_inventory_should_complete_pending_reservation()
+        {
+            backEndServiceUnderTest.Products.Add("1", new Inventory("1", 10));
+
+            var orders = new List<OrderLine>
+            {
+                new OrderLine("1", 20)
+            };
+
+            backEndServiceUnderTest.CreateReservation(orders);
+            backEndServiceUnderTest.PendingReservations.Count.Should().Be(1);
+            backEndServiceUnderTest.AvailableReservations.Count.Should().Be(0);
+
+            backEndServiceUnderTest.SetInventory("1", backEndServiceUnderTest.Products["1"].Quantity + 10);
+            backEndServiceUnderTest.HandleReservationsAvailability("1");
+
+            backEndServiceUnderTest.PendingReservations.Count.Should().Be(0);
+            backEndServiceUnderTest.AvailableReservations.Count.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void adding_enough_products_in_inventory_should_not_complete_pending_reservation_with_several_unavailable_products()
+        {
+            backEndServiceUnderTest.Products.Add("1", new Inventory("1", 10));
+            backEndServiceUnderTest.Products.Add("2", new Inventory("2", 10));
+
+            var orders = new List<OrderLine>
+            {
+                new OrderLine("1", 20),
+                new OrderLine("2", 20)
+            };
+
+            backEndServiceUnderTest.CreateReservation(orders);
+            backEndServiceUnderTest.PendingReservations.Count.Should().Be(1);
+            backEndServiceUnderTest.AvailableReservations.Count.Should().Be(0);
+
+            backEndServiceUnderTest.SetInventory("1", backEndServiceUnderTest.Products["1"].Quantity + 10);
+            backEndServiceUnderTest.HandleReservationsAvailability("1");
+
+            backEndServiceUnderTest.PendingReservations.Count.Should().Be(1);
+            backEndServiceUnderTest.AvailableReservations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void creating_2_pending_reservations_and_adding_some_inventory_to_complete_only_one_reservation_should_complete_only_one_reservation_and_not_the_other()
+        {
+            backEndServiceUnderTest.Products.Add("1", new Inventory("1", 0));
+
+            var orders = new List<OrderLine>
+            {
+                new OrderLine("1", 1)
+            };
+
+            backEndServiceUnderTest.CreateReservation(orders);
+            backEndServiceUnderTest.CreateReservation(orders);
+            backEndServiceUnderTest.PendingReservations.Count.Should().Be(2);
+            backEndServiceUnderTest.AvailableReservations.Count.Should().Be(0);
+
+            backEndServiceUnderTest.SetInventory("1", 1);
+            backEndServiceUnderTest.HandleReservationsAvailability("1");
+
+            backEndServiceUnderTest.PendingReservations.Count.Should().Be(1);
+            backEndServiceUnderTest.AvailableReservations.Count.Should().Be(1);
+        }
+
         private void CreateProducts(int range)
         {
             for (int i = 1; i <= range; ++i)

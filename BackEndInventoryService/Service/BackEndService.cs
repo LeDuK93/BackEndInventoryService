@@ -26,15 +26,11 @@ namespace BackEndInventoryService.Service
             {
                 if (Products.TryGetValue(order.ProductId, out Inventory inventory))
                 {
-                    reservation.IsAvailable &= inventory.IsAvailable && inventory.Quantity >= order.Quantity;
+                    reservation.IsAvailable &= inventory.Quantity >= order.Quantity;
 
                     if (reservation.IsAvailable)
                     {
                         SetInventory(order.ProductId, inventory.Quantity - order.Quantity);
-                    }
-                    else
-                    {
-                        inventory.IsAvailable = false;
                     }
                 }
                 else
@@ -63,7 +59,6 @@ namespace BackEndInventoryService.Service
             Inventory inventory = Products[productId];
 
             inventory.Quantity = quantity;
-            inventory.IsAvailable = inventory.Quantity > 0;
         }
 
         private void AddReservation(Reservation reservation)

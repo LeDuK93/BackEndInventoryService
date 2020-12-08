@@ -26,7 +26,7 @@ namespace BackEndInventoryService.Service
             {
                 if (Products.TryGetValue(order.ProductId, out Inventory inventory))
                 {
-                    reservation.IsAvailable &= Products[order.ProductId].Availability && inventory.Quantity >= order.Quantity;
+                    reservation.IsAvailable &= inventory.IsAvailable && inventory.Quantity >= order.Quantity;
 
                     if (reservation.IsAvailable)
                     {
@@ -34,7 +34,7 @@ namespace BackEndInventoryService.Service
                     }
                     else
                     {
-                        Products[order.ProductId].Availability = false;
+                        inventory.IsAvailable = false;
                     }
                 }
                 else
@@ -53,7 +53,7 @@ namespace BackEndInventoryService.Service
             return Products.Values.Skip(cursor).Take(limit).ToList();
         }
 
-        public List<Reservation> GetReservations(int cursor, int limit)
+        public List<Reservation> GetAvailableReservations(int cursor, int limit)
         {
             return AvailableReservations.OrderBy(r => r.ReservationId).Skip(cursor).Take(limit).ToList();
         }
@@ -63,7 +63,7 @@ namespace BackEndInventoryService.Service
             Inventory inventory = Products[productId];
 
             inventory.Quantity = quantity;
-            inventory.Availability = inventory.Quantity > 0;
+            inventory.IsAvailable = inventory.Quantity > 0;
         }
 
         private void AddReservation(Reservation reservation)
@@ -78,7 +78,7 @@ namespace BackEndInventoryService.Service
             }
         }
 
-        public void HandleReservationsAvailability(string productId)
+        public void CompletePendingReservations(string productId)
         {
             var pendingReservationsToRemove = new List<Reservation>();
 

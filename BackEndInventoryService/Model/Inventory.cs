@@ -4,7 +4,7 @@
     {
         public string ProductId { get; set; }
         public int Quantity { get; set; }
-        public bool Availability { get; set; }
+        public bool IsAvailable { get; set; }
 
         public Inventory(
             string productId, 
@@ -12,7 +12,7 @@
         {
             ProductId = productId;
             Quantity = quantity;
-            Availability = quantity > 0;
+            IsAvailable = quantity > 0;
         }
     }
 }
